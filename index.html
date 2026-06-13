@@ -445,6 +445,14 @@ function getDemoItems(){
 
 let filteredItems=[];
 
+function fixDriveUrl(url){
+  if(!url) return '';
+  // Convert drive uc?id= links to thumbnail format which works for embedding
+  const m = url.match(/[?&]id=([\w-]+)/);
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w800';
+  return url;
+}
+
 function renderPortfolio(items){
   const grid=document.getElementById('portfolioGrid');
   filteredItems=currentFilter==='all'?items:items.filter(i=>(i.category||'').toLowerCase()===currentFilter);
@@ -456,12 +464,13 @@ function renderPortfolio(items){
 
   grid.innerHTML=filteredItems.map((item,idx)=>{
     const isVideo=item.type==='video'||(item.url||'').includes('youtube')||(item.url||'').includes('vimeo');
-    const thumb=item.thumbnail||item.url;
+    const thumb=fixDriveUrl(item.thumbnail||item.url);
+    const displayUrl=fixDriveUrl(item.url);
     const media=isVideo
       ?`<div class="portfolio-video-wrap"><iframe src="${item.url}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope" allowfullscreen loading="lazy"></iframe></div>`
       :`<img class="portfolio-thumb" src="${thumb}" alt="" loading="lazy" onerror="this.style.display='none'"/>`;
 
-    return`<div class="portfolio-card" data-idx="${idx}">
+    return`<div class="portfolio-card" data-idx="${idx}" data-url="${displayUrl}">
       ${media}
       <div class="portfolio-info">
         <div class="portfolio-cat">${item.category||'Creative'}</div>
@@ -476,7 +485,7 @@ function renderPortfolio(items){
       const item=filteredItems[+card.dataset.idx];
       if(!item) return;
       const isVideo=item.type==='video'||(item.url||'').includes('youtube')||(item.url||'').includes('vimeo');
-      openLightbox(isVideo?'video':'image', item.url, item.title||'');
+      openLightbox(isVideo?'video':'image', fixDriveUrl(item.url), item.title||'');
     });
   });
 }
