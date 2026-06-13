@@ -375,7 +375,7 @@
 /* ─── CONFIG — Replace these with your actual Sheet IDs & App Script URL ─── */
 const SHEET_ID = '12Z78VSnPWPOD0gO84PHzcmb8vq_Au3hBPrHmp9mnEHA';
 const PORTFOLIO_SHEET_NAME = 'portfolio';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyfe-Yvf0pfva-9DFfO8p4V6JyVP_PW69TUGI64ku4wdxUE1IgaW3JF_1xlNlMI6YCiFw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0ENFBAZi0utRbf-r_lpy57X7BbuwGwF0V0L18iaJ0b1GeUNeFfQUnURJYKtBwezIafg/exec';
 
 /* ─── NAV SCROLL ─── */
 window.addEventListener('scroll',()=>{
@@ -412,13 +412,17 @@ async function loadPortfolio(){
     const text=await res.text();
     const json=JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/)[1]);
     const rows=json.table.rows;
-    const cols=json.table.cols.map(c=>c.label.toLowerCase().trim());
-
+    // Map by position: A=title, B=category, C=type, D=url, E=thumbnail
     allItems=rows.map(r=>{
-      const obj={};
-      cols.forEach((c,i)=>{ obj[c]=r.c[i]?r.c[i].v:''; });
-      return obj;
-    }).filter(r=>r.title||r.url);
+      const c=r.c;
+      return {
+        title:    c[0]&&c[0].v ? String(c[0].v).trim() : '',
+        category: c[1]&&c[1].v ? String(c[1].v).trim() : '',
+        type:     c[2]&&c[2].v ? String(c[2].v).trim() : '',
+        url:      c[3]&&c[3].v ? String(c[3].v).trim() : '',
+        thumbnail:c[4]&&c[4].v ? String(c[4].v).trim() : '',
+      };
+    }).filter(r=>r.title&&r.url);
 
     renderPortfolio(allItems);
   }catch(e){
